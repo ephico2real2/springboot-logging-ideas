@@ -44,3 +44,24 @@ When presenting to your boss, emphasize how this structured and keyword-based lo
 - Make the logs more readable and understandable.
 
 Always ensure that no sensitive information is being logged, and regularly audit logs to maintain privacy and compliance.
+
+
+Prometheus is primarily a monitoring system and time-series database designed for reliability and scalability. It's excellent for monitoring metrics and alerting based on those metrics, but it's not designed to be a log management or parsing system.
+
+Here's what Prometheus excels at:
+
+1. **Scraping Metrics**: Prometheus pulls metrics from your applications or services at regular intervals.
+
+2. **Storing Metrics**: It stores these metrics as time-series data, allowing you to analyze historical data.
+
+3. **Alerting**: Based on the metrics and predefined rules, Prometheus can trigger alerts.
+
+4. **Querying**: Prometheus has its own query language called PromQL, which allows for efficient querying and aggregation of time-series data.
+
+However, if you're looking to parse logs, extract specific fields, or search logs based on specific patterns or keywords, Prometheus isn't the tool for that. That's where log management tools like Sumo Logic, ELK (Elasticsearch, Logstash, Kibana), Splunk, Loki, etc., come in.
+
+
+In conclusion:
+- For structured logging, parsing logs, and keyword-based searches: Use tools like Sumo Logic, ELK, Splunk, or Loki.
+- For monitoring application metrics and alerting based on metric thresholds: Use Prometheus.
+
