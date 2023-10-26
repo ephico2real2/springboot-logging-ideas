@@ -104,3 +104,214 @@ Here’s how it generally works:
 4. Create dashboards, alerts, or queries in Sumo Logic based on the Prometheus metrics.
 
 It's also worth noting that Sumo Logic might iterate and refine their integrations over time. So, always refer to the official Sumo Logic documentation or guides for the most up-to-date and detailed instructions.
+
+
+
+Absolutely! Let's delve deeper into Structured Logging and Mapped Diagnostic Context (MDC).
+
+## Structured Logging:
+
+Structured logging is a method where log messages are written out in a predictable structure. This often means using a format like JSON to organize the data, making it far easier to analyze.
+
+**Benefits:**
+- Easier to parse and analyze, especially with tools like ELK Stack, Splunk, and Sumo Logic.
+- Provides better context as you can include more data fields in a structured manner.
+- Consistency across all log messages.
+
+**Sample Code for Structured Logging with Spring Boot:**
+
+1. Add the required dependencies:
+```xml
+<dependency>
+    <groupId>net.logstash.logback</groupId>
+    <artifactId>logstash-logback-encoder</artifactId>
+    <version>YOUR_VERSION_HERE</version>
+</dependency>
+```
+
+2. Update your `logback-spring.xml` to utilize the JSON encoder:
+
+```xml
+<configuration>
+    <appender name="JSON" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="net.logstash.logback.encoder.LogstashEncoder" />
+    </appender>
+    <root level="info">
+        <appender-ref ref="JSON" />
+    </root>
+</configuration>
+```
+
+3. Log messages:
+
+```java
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+public class SampleService {
+
+    private static final Logger logger = LoggerFactory.getLogger(SampleService.class);
+
+    public void someMethod() {
+        logger.info("User created successfully with id {}", userId);
+    }
+}
+```
+
+This would produce a log like:
+
+```json
+{
+    "@timestamp": "2022-01-01T12:00:00.000+00:00",
+    "level": "INFO",
+    "thread": "main",
+    "logger": "com.example.SampleService",
+    "message": "User created successfully with id 123",
+    ...
+}
+```
+
+## Mapped Diagnostic Context (MDC):
+
+MDC allows you to add contextual data to logs. For instance, in a web application, you might want to log the username or user ID with every log message. Instead of adding this to every log statement, you set it once at the beginning of the request and then automatically include it in every log message.
+
+**Benefits:**
+- Provides richer context for log messages.
+- Reduces repetition by avoiding the need to log the same contextual data repeatedly.
+- Helps in tracing the flow of transactions or requests.
+
+**Sample Code for MDC with Spring Boot:**
+
+1. Set values in MDC at the start of a request (this might be in a filter or interceptor):
+
+```java
+import org.slf4j.MDC;
+
+public class RequestContextInterceptor implements HandlerInterceptor {
+
+    @Override
+    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
+        MDC.put("userId", request.getHeader("UserId"));
+        return true;
+    }
+
+    @Override
+    public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) {
+        MDC.clear();
+    }
+}
+```
+
+2. In your services or controllers, simply log as usual:
+
+```java
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+public class SampleService {
+
+    private static final Logger logger = LoggerFactory.getLogger(SampleService.class);
+
+    public void someMethod() {
+        logger.info("Fetching data for the user");
+    }
+}
+```
+
+The log will now include the `userId` automatically:
+
+```json
+{
+    "@timestamp": "2022-01-01T12:00:00.000+00:00",
+    "level": "INFO",
+    "thread": "main",
+    "logger": "com.example.SampleService",
+    "message": "Fetching data for the user",
+    "userId": "123"
+    ...
+}
+```
+By combining structured logging and MDC, you make your logs both standardized and context-rich, which is invaluable for troubleshooting and analysis.
+
+
+Capturing HTTP error codes (4XX and 5XX) is essential for tracking and monitoring the health of your web applications. Spring Boot, with the help of Spring Web, provides mechanisms to handle exceptions and translate them into meaningful HTTP responses.
+
+Here's how you can capture and log 4XX and 5XX errors in your Spring Boot application:
+
+## 1. Global Exception Handling with `@ControllerAdvice`
+
+You can use `@ControllerAdvice` to define a global exception handler that captures exceptions from all controllers in your application:
+
+```java
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.ControllerAdvice;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.server.ResponseStatusException;
+
+@ControllerAdvice
+public class GlobalExceptionHandler {
+
+    private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
+
+    @ExceptionHandler(ResponseStatusException.class)
+    public ResponseEntity<String> handleResponseStatusException(ResponseStatusException ex) {
+        logger.error("HTTP Error: {}", ex.getStatus(), ex);
+        return new ResponseEntity<>(ex.getReason(), ex.getStatus());
+    }
+    
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<String> handleAllOtherExceptions(Exception ex) {
+        logger.error("Unexpected error occurred: ", ex);
+        return new ResponseEntity<>("An unexpected error occurred", HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+}
+```
+
+With this setup, any thrown `ResponseStatusException` will be caught by `handleResponseStatusException`, while other exceptions will fall to `handleAllOtherExceptions`. You can extend this to handle other specific exceptions as needed.
+
+## 2. Custom Error Attributes with `ErrorController`
+
+Spring Boot provides a default `/error` mapping through its `BasicErrorController` which acts as a catch-all for any error that bubbles up. You can extend this behavior by providing your custom error attributes or a custom `ErrorController`.
+
+Here's a basic example:
+
+```java
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.boot.web.servlet.error.DefaultErrorAttributes;
+import org.springframework.stereotype.Component;
+import org.springframework.web.context.request.WebRequest;
+
+import java.util.Map;
+
+@Component
+public class CustomErrorAttributes extends DefaultErrorAttributes {
+
+    private static final Logger logger = LoggerFactory.getLogger(CustomErrorAttributes.class);
+
+    @Override
+    public Map<String, Object> getErrorAttributes(WebRequest webRequest, boolean includeStackTrace) {
+        Map<String, Object> errorAttributes = super.getErrorAttributes(webRequest, includeStackTrace);
+        Throwable error = getError(webRequest);
+
+        if (error instanceof ResponseStatusException) {
+            logger.error("HTTP Error: {}", ((ResponseStatusException) error).getStatus(), error);
+        } else {
+            logger.error("Unexpected error occurred: ", error);
+        }
+
+        return errorAttributes;
+    }
+}
+```
+
+This will augment the default `/error` handling to include additional logging for both 4XX and 5XX errors.
+
+## 3. Monitor HTTP Error Metrics
+
+If you've integrated with `micrometer` and Prometheus (as your previous configurations suggest), you can also monitor the number of 4XX and 5XX responses using metrics. Spring Boot automatically provides metrics for HTTP requests under the `http.server.requests` metric name. This metric includes labels/tags for the HTTP status code, so you can easily track the number of 4XX and 5XX responses over time.
+
+With these mechanisms in place, you'll have a robust system to capture, log, and monitor 4XX and 5XX errors in your Spring Boot application.
