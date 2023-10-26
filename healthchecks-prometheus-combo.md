@@ -250,3 +250,57 @@ In both cases, make sure you adjust the image, deployment names, etc., to match 
 - `Prometheus`: This is a specific monitoring system that collects and stores metrics. It has its own query language (PromQL) to query those metrics, create alerts, etc.
 
 In the context of Spring Boot and Micrometer, the distinction between the `metrics` and `prometheus` endpoints is about the presentation of metrics. The `metrics` endpoint provides a more general and human-readable view, while the `prometheus` endpoint formats those metrics specifically for ingestion by the Prometheus system.
+
+# Further DeepDive
+
+The below configuration is a Spring Boot application properties (typically found in `application.yml` or `application.properties` files) that dictate certain behaviors and settings of your Spring Boot application. Let's break it down section by section:
+
+1. **spring.application.name**:
+   ```yaml
+   spring:
+     application:
+       name: monitoring-demo
+   ```
+   - **Purpose**: Sets the name of the Spring Boot application.
+   - **Effect**: Useful for distinguishing between different services, especially in a microservices environment. It's often displayed in the logs, monitoring tools, etc.
+
+2. **management.endpoints**:
+   ```yaml
+   management:
+     endpoints:
+       web:
+         base-path: /actuator
+         exposure:
+           include: [ "health","prometheus", "metrics" ]
+   ```
+   - **Purpose**: Configuration related to Spring Boot's Actuator module, which provides various management and monitoring capabilities.
+   - **Effect**: 
+      - All actuator endpoints will be accessible under the `/actuator` base path.
+      - Only the `health`, `prometheus`, and `metrics` endpoints will be exposed and accessible from the web. Others will be hidden.
+
+3. **management.endpoint**:
+   ```yaml
+   management:
+     endpoint:
+       health:
+         show-details: always
+       metrics:
+         enabled: true
+       prometheus:
+         enabled: true
+   ```
+   - **Purpose**: More granular settings for individual actuator endpoints.
+   - **Effect**:
+      - `health`: The health endpoint will always show details, meaning any information related to the health checks will be displayed.
+      - `metrics`: The metrics endpoint is enabled, so it can show various metrics about the application's performance and behavior.
+      - `prometheus`: The prometheus endpoint is enabled, which means that it will expose metrics in a format that Prometheus (a monitoring tool) can scrape.
+
+4. **server.port**:
+   ```yaml
+   server:
+     port: 8080
+   ```
+   - **Purpose**: Specifies the port on which the embedded web server will start and listen for HTTP requests.
+   - **Effect**: The application will run and be accessible on port `8080`.
+
+To summarize, this configuration sets up a Spring Boot application named `monitoring-demo`, which exposes actuator endpoints under the `/actuator` path. Specifically, `health`, `prometheus`, and `metrics` endpoints are exposed. The app will provide detailed health check information, expose metrics suitable for Prometheus, and run on port 8080.
