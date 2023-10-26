@@ -52,6 +52,35 @@ Beyond just the count or rate of errors, you might want to track other associate
 
 By correlating error metrics with other system or application metrics, you can gain deeper insights into the root causes of issues.
 
+
+The `http.server.requests` metric, provided by Micrometer in Spring Boot applications, can be accessed via the `/actuator/prometheus` endpoint when you've set up the application with the `spring-boot-starter-actuator` and `micrometer-registry-prometheus` dependencies.
+
+Here's how you'd typically access this:
+
+1. **Run your Spring Boot application.** Make sure you've configured the `spring-boot-starter-actuator` and `micrometer-registry-prometheus` in your project and set up the appropriate configuration in `application.yml` or `application.properties`.
+
+2. **Send some requests to your application.** This is to generate some metrics data. For instance, if you have a REST endpoint at `/api/users`, send a few GET or POST requests to that URL.
+
+3. **Access the Prometheus Actuator endpoint.** Open a web browser or use a tool like `curl` to make a request to:
+```
+http://localhost:8080/actuator/prometheus
+```
+(assuming you're running the actuator on the main server port `8080`)
+
+4. **Look for `http.server.requests` metric.** In the output (which will be in Prometheus exposition format), scroll or search for metrics that start with `http_server_requests_seconds_`. You might see entries like:
+```
+http_server_requests_seconds_count{exception="None",method="GET",outcome="SUCCESS",status="200",uri="/api/users",} 5.0
+http_server_requests_seconds_sum{exception="None",method="GET",outcome="SUCCESS",status="200",uri="/api/users",} 0.153
+http_server_requests_seconds_count{exception="None",method="POST",outcome="SUCCESS",status="201",uri="/api/users",} 2.0
+http_server_requests_seconds_count{exception="UserNotFoundException",method="GET",outcome="CLIENT_ERROR",status="404",uri="/api/users/{id}",} 1.0
+```
+The above metrics indicate:
+- The `/api/users` GET endpoint was called 5 times and succeeded with a 200 status.
+- The `/api/users` POST endpoint was called 2 times and succeeded with a 201 status.
+- The `/api/users/{id}` GET endpoint was called once, threw a `UserNotFoundException`, and returned a 404 status.
+
+From the Prometheus metrics exposed at the `/actuator/prometheus` endpoint, you can pull these into a Prometheus server for scraping and then use tools like Grafana to visualize and alert on them.
+
 ### Conclusion
 
 Monitoring HTTP error metrics, especially 4XX and 5XX status codes, gives you a direct view into the problems your users might be facing. Combined with other monitoring tools and practices, it forms a robust framework for ensuring the reliability and performance of your web application.
