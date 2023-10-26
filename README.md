@@ -65,3 +65,42 @@ In conclusion:
 - For structured logging, parsing logs, and keyword-based searches: Use tools like Sumo Logic, ELK, Splunk, or Loki.
 - For monitoring application metrics and alerting based on metric thresholds: Use Prometheus.
 
+
+# Sumologic and Prometheus
+
+Sumo Logic can collect Prometheus metrics from Kubernetes by integrating with the Prometheus collector within Sumo Logic's Kubernetes Collection solution. This is done using Sumo Logic's Fluentd-based collector to scrape Prometheus metrics from pods or services annotated appropriately.
+
+Here’s how it generally works:
+
+1. **Prometheus Annotations**:
+   - You annotate your pods or services with specific Prometheus annotations. These annotations indicate that a pod or service wants its metrics to be scraped.
+   - Common annotations include:
+     - `prometheus.io/scrape`: Set to 'true' to enable scraping for this pod or service.
+     - `prometheus.io/path`: If the metrics path is not '/metrics', define it with this annotation.
+     - `prometheus.io/port`: Define the port to scrape metrics from.
+   
+2. **Deploy Sumo Logic's Kubernetes Collection Solution**:
+   - You deploy the Sumo Logic Kubernetes collection solution, which includes a Fluentd-based collector that has the capability to scrape Prometheus metrics based on the aforementioned annotations.
+   - This Fluentd collector will be configured to recognize and scrape from the Prometheus-annotated pods or services.
+   
+3. **Metric Collection**:
+   - Fluentd checks for the presence of the Prometheus annotations in the Kubernetes metadata.
+   - If it finds a pod or service with the scrape annotation set to true, it will scrape metrics from the specified path and port.
+   
+4. **Forward to Sumo Logic**:
+   - Once the metrics are scraped, the Fluentd collector sends them to Sumo Logic for storage, analysis, visualization, and alerting.
+
+5. **Visualization and Alerts**:
+   - Within Sumo Logic, you can create dashboards to visualize the Prometheus metrics, set up queries to analyze trends, and establish alerts based on thresholds or anomalies.
+
+**Steps to Set It Up**:
+
+1. Annotate your Kubernetes pods or services that expose Prometheus metrics with the appropriate annotations.
+   
+2. Deploy and set up Sumo Logic's Kubernetes collection solution. Ensure you configure it to include the Prometheus metrics scraping feature.
+   
+3. Once deployed, verify metrics are being scraped by checking in Sumo Logic's interface to ensure the data is coming in.
+
+4. Create dashboards, alerts, or queries in Sumo Logic based on the Prometheus metrics.
+
+It's also worth noting that Sumo Logic might iterate and refine their integrations over time. So, always refer to the official Sumo Logic documentation or guides for the most up-to-date and detailed instructions.
