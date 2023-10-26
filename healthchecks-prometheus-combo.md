@@ -1,4 +1,4 @@
-### Case 1: App on Main Server Port 
+### Various combinations
 
 
 By default, the Spring Boot Actuator's health endpoints are available on the same port as the main application. So, if the application is running on port `8080`, then the health endpoint would indeed be available at `http://<host>:8080/actuator/health`.
