@@ -219,3 +219,31 @@ spec:
 For both configurations, remember the Maven dependencies ensure that Spring Boot's actuator and Prometheus's metrics capabilities are added to your application. The annotations in the Kubernetes deployment instruct Prometheus to scrape metrics from the designated path and port.
 
 In both cases, make sure you adjust the image, deployment names, etc., to match your specific needs. The provided configurations are general examples based on the described scenarios.
+
+## Prometheus and Metrics
+
+`prometheus` and `metrics` in the context of Spring Boot Actuator and Micrometer refer to different things, and their distinction can be better understood in the broader context of monitoring and observability:
+
+1. **metrics (in Actuator context)**:
+   
+   - **Definition**: Refers to the endpoint provided by Spring Boot Actuator that gives details about various application metrics. These metrics can be JVM metrics (like memory usage, garbage collection stats), system metrics, or custom metrics.
+   
+   - **Usage**: By accessing the `/actuator/metrics` endpoint, you can see a list of all available metrics. You can then drill down into individual metrics by appending their name, e.g., `/actuator/metrics/jvm.memory.used`.
+
+   - **Role**: Provides a general view of metrics, but isn't tailored to any specific monitoring system.
+
+2. **prometheus (in Actuator context with Micrometer)**:
+
+   - **Definition**: Refers to the endpoint specifically tailored to provide metrics in a format that the Prometheus monitoring system can understand and scrape. It's an integration between Spring Boot applications and Prometheus made easier with the Micrometer library.
+   
+   - **Usage**: By including the `micrometer-registry-prometheus` dependency in your project and enabling the endpoint, metrics will be made available at `/actuator/prometheus` in a format suitable for Prometheus to scrape.
+   
+   - **Role**: Makes the integration with Prometheus straightforward. Prometheus will regularly scrape this endpoint to collect metrics and then you can visualize, alert, or analyze these metrics using Prometheus itself or other tools like Grafana.
+
+**Broadly Speaking**:
+
+- `metrics`: This is a general term referring to measurements or data points that represent the behavior, performance, or characteristics of a system. In the context of software, metrics can cover various things, from the number of active users, error rates, to system resource utilization.
+
+- `Prometheus`: This is a specific monitoring system that collects and stores metrics. It has its own query language (PromQL) to query those metrics, create alerts, etc.
+
+In the context of Spring Boot and Micrometer, the distinction between the `metrics` and `prometheus` endpoints is about the presentation of metrics. The `metrics` endpoint provides a more general and human-readable view, while the `prometheus` endpoint formats those metrics specifically for ingestion by the Prometheus system.
