@@ -1,5 +1,64 @@
 # springboot-logging-ideas
 
+## Prometheus with 5xx and 4xx
+
+Monitoring HTTP error metrics is a crucial aspect of understanding and improving the stability and user experience of your web application. By tracking the frequency and types of HTTP errors, you can gain insights into potential issues in your application or its infrastructure.
+
+**Spring Boot, Micrometer, and Prometheus Integration**
+
+Spring Boot 2.x integrates smoothly with Micrometer, a dimensional application metrics facade. Micrometer provides a set of out-of-the-box instrumentations for JVM-based applications and, when integrated with Spring Boot, automatically captures a wide range of metrics, including HTTP request metrics.
+
+### 1. Basic HTTP Request Metrics
+
+Once Micrometer is integrated (as you've already done with the `micrometer-registry-prometheus` dependency), Spring Boot automatically exposes the `http.server.requests` metric. This metric provides details about incoming HTTP requests, tagged (or labeled) by attributes such as:
+
+- `status`: The HTTP response status code (e.g., `200`, `404`, `500`).
+- `exception`: The exception class name, if an exception was thrown during request processing.
+- `method`: The HTTP method (e.g., `GET`, `POST`).
+- `uri`: The request URI pattern (not the exact path to avoid high cardinality).
+
+### 2. Monitoring 4XX and 5XX Status Codes
+
+Using the `http.server.requests` metric, you can filter or aggregate by the `status` label to monitor 4XX and 5XX status codes specifically.
+
+For instance, in Prometheus Query Language (PromQL), you might use queries like:
+
+- **Count of 5XX errors in the last 5 minutes:**  
+  `sum(rate(http_server_requests_seconds_count{status=~"5.."}[5m]))`
+
+- **Count of 4XX errors in the last 5 minutes:**  
+  `sum(rate(http_server_requests_seconds_count{status=~"4.."}[5m]))`
+
+### 3. Alerts
+
+Once you've got the metrics and can query them, a natural next step is to set up alerts for abnormal patterns. For example:
+
+- Alert if the rate of 5XX errors exceeds a certain threshold.
+- Alert if a specific endpoint starts returning an elevated rate of 4XX errors.
+
+These alerts can be set up within Prometheus itself or in a tool like Grafana, which can query Prometheus and has a more sophisticated alerting mechanism.
+
+### 4. Visualizing the Metrics
+
+Visualization is crucial for interpreting the metrics data effectively. Using tools like Grafana, you can create dashboards to visualize the rate of 4XX and 5XX errors over time, the most common error endpoints, error rates compared to overall traffic rates, etc. Such dashboards provide a quick overview of the application's health and can help in diagnosing issues.
+
+### 5. Digging Deeper
+
+Beyond just the count or rate of errors, you might want to track other associated metrics:
+
+- **Latency of error responses:** If certain errors also correspond with high latency, it might indicate resource contention or other backend issues.
+  
+- **Correlation with other metrics:** Perhaps the rate of errors increases when the JVM garbage collection pauses are high, or when a certain upstream service is down.
+
+By correlating error metrics with other system or application metrics, you can gain deeper insights into the root causes of issues.
+
+### Conclusion
+
+Monitoring HTTP error metrics, especially 4XX and 5XX status codes, gives you a direct view into the problems your users might be facing. Combined with other monitoring tools and practices, it forms a robust framework for ensuring the reliability and performance of your web application.
+
+
+# Logging Strategies
+
 Absolutely, adding structured logging with specific keywords or fields makes it easier to parse, search, and set up alerts on logs, especially in platforms like Sumo Logic, ELK, Splunk, etc.
 
 Here's how you can approach it:
