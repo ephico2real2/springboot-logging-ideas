@@ -1,4 +1,31 @@
-Alright! Here's a refined tutorial for the two primary cases:
+### Case 1: App on Main Server Port 
+
+
+By default, the Spring Boot Actuator's health endpoints are available on the same port as the main application. So, if the application is running on port `8080`, then the health endpoint would indeed be available at `http://<host>:8080/actuator/health`.
+
+In some configurations, how you can separate operational endpoints (like metrics and health checks) to a different port (`9090` in this case) by using the management port configurations in the `application.yml`.
+
+However, this is optional. If you prefer to keep the health endpoints on the main application port (`8080`), you would not need to use the management port configurations. You would just rely on the default behavior of the actuator exposing health checks at `/actuator/health` on port `8080`.
+
+To clarify:
+
+- If you use the `management.server.port` setting in the `application.yml`, it will move all actuator endpoints, including health checks, to that port. So, with that configuration, the health endpoints would be on port `9090`.
+
+- If you don't specify the `management.server.port`, then the actuator endpoints, including health checks, will remain on the main application port, which is `8080` in our example.
+
+To address the `/actuator/health/readiness` and `/actuator/health/liveness` endpoints: These are specific probes exposed by Spring Boot when you enable the Kubernetes probes configuration via:
+
+```yaml
+management:
+  health:
+    probes:
+      enabled: true
+```
+
+These endpoints are designed to align with Kubernetes liveness and readiness probes. However, the exact port they appear on (`8080` or `9090`) depends on whether or not you've configured the separate management port in the `application.yml`.
+
+
+Below two primary cases:
 
 ### Case 1: App on Main Server Port (`8080`) and Both Prometheus & Health Checks on Admin Port (`9090`)
 
