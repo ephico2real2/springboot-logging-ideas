@@ -1,7 +1,10 @@
 ### Various combinations
 
+From Spring Boot 2.3, the Spring Boot Actuator has excellent integration with the Kubernetes probes, and the actuator project provides these two endpoints (/actuator/health/liveness and /actuator/health/readiness) as Liveness and Readiness probes out of the box.
 
 By default, the Spring Boot Actuator's health endpoints are available on the same port as the main application. So, if the application is running on port `8080`, then the health endpoint would indeed be available at `http://<host>:8080/actuator/health`.
+
+
 
 In some configurations, how you can separate operational endpoints (like metrics and health checks) to a different port (`9090` in this case) by using the management port configurations in the `application.yml`.
 
